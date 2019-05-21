@@ -1,0 +1,172 @@
+package SubgraphMining;
+
+import java.awt.Point;
+import java.util.ArrayList;
+
+public class LinearHeap {
+
+	int n;
+	int key_cap;
+	int max_key;
+	int min_key;
+
+	int keys[];
+	int heads[];
+	int prevs[];
+	int nexts[];
+
+	public LinearHeap(int n, int key_cap) {
+		this.n = n;
+		this.key_cap = key_cap;
+		keys = null;
+		heads = null;
+		prevs = null;
+		nexts = null;
+
+	}
+
+	public void init(int n_ , int key_cap,int elems[], int keys[]) {
+		this.max_key = 0;
+		this.min_key = Integer.MAX_VALUE;
+
+		this.heads = new int[key_cap + 1];
+
+		this.keys = new int[n];
+		this.prevs = new int[n];
+		this.nexts = new int[n];
+
+		for (int key = 0; key <= this.key_cap; key++) {
+			this.heads[key] = this.n;
+		}
+
+		for (int i = 0; i < n_; i++) {
+			insert(elems[i], keys[i]);
+		}
+	}
+
+	public void insert(int element, int key) {
+		this.keys[element] = key;
+		this.prevs[element] = n;
+		this.nexts[element] = this.heads[key];
+		if (this.heads[key] != n) {
+			this.prevs[this.heads[key]] = element;
+		}
+
+		this.heads[key] = element;
+
+		this.max_key = Math.max(this.max_key, key);
+		this.min_key = Math.min(this.min_key, key);
+
+	}
+
+	public Integer remove(int element) {
+		if (this.prevs[element] == n) {
+			this.heads[this.keys[element]] = this.nexts[element];
+			if (this.nexts[element] != n) {
+				this.prevs[this.nexts[element]] = n;
+			}
+
+		} else {
+			this.nexts[this.prevs[element]] = this.nexts[element];
+			if (this.nexts[element] != n) {
+				this.prevs[this.nexts[element]] = this.prevs[element];
+			}
+
+		}
+
+		return this.keys[element];
+	}
+
+	public int decrement(int element, int dec) {
+		assert(keys[element] >= dec);
+		Integer key = keys[element];
+		key -= dec;
+		remove(element);
+		insert(element, key);
+		return key;
+	}
+
+	public int increment(int element, int inc) {
+		Integer key = keys[element];
+		key += inc;
+		remove(element);
+		insert(element, key);
+		return key;
+	}
+
+	public int size() {
+		f();
+		int res = 0;
+		for (int i = min_key; i <= max_key; i++)
+			for (int id = heads[i]; id != n; id = nexts[id])
+				++res;
+		return res;
+	}
+
+	public boolean empty() {
+		f();
+		return min_key > max_key;
+	}
+	public Point pop_min() {
+		/*
+		while (this.min_key <= this.max_key && this.heads[this.min_key] == n) {
+			this.min_key += 1;
+		}
+		if (this.min_key > this.max_key) {
+			return false;
+		} else {
+			element = this.heads[this.min_key];
+			key = this.min_key;
+			remove(element);
+			return true;
+		}
+		*/
+		if(empty()) return new Point(-1, -1);
+
+		int element = heads[min_key];
+		int key = min_key;
+
+		assert(keys[element] == key);
+
+		heads[min_key] = nexts[element];
+		if(heads[min_key] != n) prevs[heads[min_key]] = n;
+		return new Point(element, key);
+
+	}
+
+	public int get_min(int element, int key) {
+		while (this.min_key <= this.max_key && this.heads[this.min_key] == n) {
+			this.min_key += 1;
+		}
+		if (this.min_key > this.max_key) {
+			return -1;
+		} else {
+			element = this.heads[this.min_key];
+			key = this.min_key;
+			// remove(element);
+			return element;
+		}
+
+	}
+
+	public void f() {
+		while (this.min_key <= this.max_key && this.heads[this.min_key] == this.n) {
+			++this.min_key;
+		}
+		while (this.min_key <= this.max_key && this.heads[this.max_key] == this.n) {
+			--this.max_key;
+		}
+	}
+
+	public ArrayList<Integer> get_elems() {
+		ArrayList<Integer> ret = new ArrayList<>();
+		f();
+		for (Integer i = this.min_key; i <= this.max_key; i++) {
+			for (Integer id = this.heads[i]; id != this.n; id = this.nexts[id]) {
+				ret.add(id);
+			}
+		}
+		return ret;
+	}
+
+}
